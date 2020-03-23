@@ -6,7 +6,7 @@ from plotly.offline import iplot
 from IPython.display import clear_output, HTML, display, Image
 
 layout = go.Layout(
-    scene = dict( aspectmode='cube', camera = dict(eye=dict(x=-2, y=1.5, z=1)),
+    scene = dict( aspectmode='cube', camera = dict(eye=dict(x=-1.8, y=-1.2, z=0.8)),
     xaxis = dict(
         title='x',
         gridcolor="rgb(255, 255, 255)",
@@ -28,13 +28,13 @@ layout = go.Layout(
         showbackground=True,
         backgroundcolor="rgb(230, 230,200)",),),
     autosize=False,
-    width=800, height=600,
+    width=1000, height=600,
     margin=dict(
-        r=20, b=10,
+        r=10, b=10,
         l=10, t=10),
     )
 camera = dict(
-    eye=dict(x=-2, y=2, z=1)
+    eye=dict(x=-1.8, y=-1.2, z=0.8)
 )
 
 def TDMA(data, F):
@@ -64,7 +64,7 @@ def TDMA(data, F):
     return(np.array(x))
 
 class HES():
-    def __init__(self, X_START=0, X_END=2, Y_START=0, Y_END=1, T_START=0, T_END=20, N=5, M=5, J=5):
+    def __init__(self, X_START=0, X_END=1, Y_START=0, Y_END=2, T_START=0, T_END=20, N=5, M=5, J=5):
         self.X_START = X_START
         self.X_END = X_END
         self.Y_START = Y_START
@@ -82,27 +82,27 @@ class HES():
         self.dt = self.t[1] - self.t[0]
 
     def initialize(self, a=1, f=lambda x, y, t:0, fi=lambda x, y:0, alpha1x=0, alpha2x=0, beta2x=0, beta1x=0, mu1x=lambda y, t:0, mu2x=lambda y, t:0, alpha1y=0, alpha2y=0, beta2y=0, beta1y=0, mu1y=lambda x, t:0, mu2y=lambda x, t:0):
-        self.a = a  # Коэффициент при операторе Лапласа
-        self.f = f  # Функция "источника тепла" - неоднородность
-        self.fi = fi  # Начальное условие
-        self.alpha1x = alpha1x  # Коэффициент при левом условии Неймана для x
-        self.alpha2x = alpha2x  # Коэффициент при правом условии Неймана для x
-        self.beta1x = beta1x  # Коэффициент при левом условии Дирихле для x
-        self.beta2x = beta2x  # Коэффициент при правом условии Дирихле для x
-        self.mu1x = mu1x # Правая часть левого граничного условия для x
-        self.mu2x = mu2x # Правая часть правого граничного условия для x
-        self.alpha1y = alpha1y  # Коэффициент при левом условии Неймана для y
-        self.alpha2y = alpha2y  # Коэффициент при правом условии Неймана для y
-        self.beta1y = beta1y  # Коэффициент при правом условии Дирихле для y
-        self.beta2y = beta2y  # Коэффициент при левом условии Дирихле для y
-        self.mu1y = mu1y # Правая часть левого граничного условия для y
-        self.mu2y = mu2y # Правая часть правого граничного условия для y
-        self.u = np.zeros((self.J, self.N, self.M))  # Создание трехмерного массива значений u(x, y, t)
-        self.u[0] = [[self.fi(x, y) for y in self.y] for x in self.x]  # Применение начального условия
+        self.a = a
+        self.f = f
+        self.fi = fi
+        self.alpha1x = alpha1x
+        self.alpha2x = alpha2x
+        self.beta1x = beta1x
+        self.beta2x = beta2x
+        self.mu1x = mu1x
+        self.mu2x = mu2x
+        self.alpha1y = alpha1y
+        self.alpha2y = alpha2y
+        self.beta1y = beta1y
+        self.beta2y = beta2y
+        self.mu1y = mu1y
+        self.mu2y = mu2y
+        self.u = np.zeros((self.J, self.N, self.M))
+        self.u[0] = [[self.fi(x, y) for y in self.y] for x in self.x]
 
     def calculate_layer(self, j):
         step_x = self.dx
-        step_y = self.dt
+        step_y = self.dy
         step_t = self.dt/2
         middle_layer = [np.array([0]*self.N)]*(self.M)
         for m in range(self.M):
@@ -189,18 +189,18 @@ class HES():
         fig.layout.updatemenus = [{'buttons': [{'args': [None, {'frame': {'duration': 100, 'redraw': False}, 'fromcurrent': True, 'transition': {'duration': 100}}], 'label': 'Play', 'method': 'animate'}, {'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate', 'transition': {'duration': 0}}], 'label': 'Pause', 'method': 'animate'}], 'direction': 'left', 'pad': {'r': 10, 't': 87}, 'showactive': False, 'type': 'buttons', 'x': 0.55, 'xanchor': 'right', 'y': 0, 'yanchor': 'top'}]
         display(iplot(fig))
 
-solver = HES(N = 50, M = 50, J = 50, T_END = 2)
+solver = HES(N = 30, M = 30, J = 30, T_END = 0.2)
 a = 1
 def f(x, y, t):
-    return (y*t)**2
+    return np.sin(np.pi*y)*np.exp(-t)
 def fi(x, y):
-    return np.cos(np.pi*x/4)*y*(1-y)
+    return np.sin(np.pi*y)
 alpha1x = 1
-alpha2x = 0
+alpha2x = 1
 alpha1y = 0
 alpha2y = 0
 beta1x = 0
-beta2x = 1
+beta2x = 0
 beta1y = 1
 beta2y = 1
 solver.initialize(a = a, f = f, fi = fi, alpha1x = alpha1x, alpha2x = alpha2x, alpha1y = alpha1y, alpha2y = alpha2y, beta1x = beta1x, beta2x = beta2x, beta1y = beta1y, beta2y = beta2y)
